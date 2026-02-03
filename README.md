@@ -9,12 +9,14 @@ This toolkit allows an AI agent (or script) to:
 
 All operations are fully programmatic - no Warpcast app or manual steps required.
 
+**For AI agents:** See [AGENT_GUIDE.md](./AGENT_GUIDE.md) for detailed implementation instructions.
+
 ## Prerequisites
 
 - Node.js 18+
-- ETH on Optimism (~$5 for registration + gas)
-- ETH on Base (~$0.50 for swapping to USDC)
-- The USDC is used for x402 micropayments to Neynar's hub API
+- **$1 of ETH or USDC** on any major chain (Ethereum, Optimism, Base, Arbitrum, Polygon)
+
+The toolkit handles bridging and swapping automatically.
 
 ## Installation
 
@@ -22,7 +24,24 @@ All operations are fully programmatic - no Warpcast app or manual steps required
 npm install
 ```
 
-## Quick Start
+## Quick Start (Fully Automatic)
+
+Send $1 of ETH or USDC to your wallet on any supported chain, then:
+
+```bash
+PRIVATE_KEY=0x... npm run auto
+# or
+PRIVATE_KEY=0x... node src/auto-setup.js "Your first cast text"
+```
+
+This will:
+1. Detect your funds across all chains
+2. Bridge/swap to get ETH on Optimism and USDC on Base
+3. Register your FID
+4. Add a signer key
+5. Post your first cast
+
+## Manual Step-by-Step
 
 ### 1. Generate a Wallet
 
@@ -138,6 +157,15 @@ The payment uses EIP-3009 (`transferWithAuthorization`) - a gasless signature-ba
 ```
 
 ## Common Errors & Solutions
+
+### Error: "invalid hash"
+
+**Cause:** Old version of @farcaster/hub-nodejs library.
+
+**Solution:** Upgrade to version 0.15.9 or later:
+```bash
+npm install @farcaster/hub-nodejs@latest
+```
 
 ### Error: "unknown fid"
 

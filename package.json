@@ -11,8 +11,8 @@
     "swap": "node src/swap-to-usdc.js"
   },
   "dependencies": {
-    "ethers": "^6.16.0",
-    "@farcaster/hub-nodejs": "^0.12.0"
+    "@farcaster/hub-nodejs": "^0.15.9",
+    "ethers": "^6.16.0"
   },
   "type": "commonjs"
 }
