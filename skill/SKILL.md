@@ -62,6 +62,8 @@ Credentials are automatically saved to:
 - `~/.openclaw/farcaster-credentials.json` (if OpenClaw is installed)
 - `./credentials.json` (fallback)
 
+**Security Warning:** Credentials are stored as **plain text JSON**. Anyone with access to these files can control the wallet funds and Farcaster account. For production use, implement your own secure storage.
+
 You can verify and manage credentials:
 
 ```bash

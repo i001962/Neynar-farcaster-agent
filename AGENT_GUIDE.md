@@ -334,6 +334,8 @@ Credentials are **automatically saved** after setup to:
 - `~/.openclaw/farcaster-credentials.json` (if OpenClaw is installed)
 - `./credentials.json` (fallback)
 
+**Security Warning:** Credentials are stored as **plain text JSON** with restricted file permissions (owner read/write only). This implementation is intentionally simple. Anyone gaining access to these files can control both the funds in the wallet and the Farcaster account. For production use or high-value accounts, you should implement your own secure storage (encrypted files, system keychain, hardware security modules, etc.).
+
 The stored credentials include:
 - **FID:** The Farcaster ID number
 - **Custody Address & Private Key:** Ethereum wallet (controls the FID)

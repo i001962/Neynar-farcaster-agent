@@ -46,6 +46,9 @@ This will:
 3. Register your FID
 4. Add a signer key
 5. Post your first cast
+6. Save credentials to `~/.openclaw/farcaster-credentials.json` or `./credentials.json`
+
+**Security Note:** Credentials are stored as plain text JSON with restricted file permissions. Anyone with access to these files can control both the wallet funds and the Farcaster account. For production use, implement your own secure storage solution.
 
 ## Manual Step-by-Step
 
