@@ -4,9 +4,11 @@
   "description": "Autonomous Farcaster account creation and casting agent",
   "main": "index.js",
   "scripts": {
+    "auto": "node src/auto-setup.js",
     "register": "node src/register-fid.js",
     "add-signer": "node src/add-signer.js",
-    "cast": "node src/post-cast.js"
+    "cast": "node src/post-cast.js",
+    "swap": "node src/swap-to-usdc.js"
   },
   "dependencies": {
     "ethers": "^6.16.0",
