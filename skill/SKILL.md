@@ -163,6 +163,31 @@ For PFP, use any publicly accessible HTTPS image URL:
 
 Budget $1 to have buffer for retries and gas fluctuations.
 
+## API Endpoints
+
+### Neynar Hub API (`https://hub-api.neynar.com`)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/submitMessage` | POST | Submit casts, profile updates (requires x402 payment header) |
+| `/v1/onChainIdRegistryEventByAddress?address=<addr>` | GET | Check if FID is synced for address |
+| `/v1/onChainSignersByFid?fid=<fid>` | GET | Check if signer keys are synced |
+
+### Neynar REST API (`https://api.neynar.com`)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v2/farcaster/cast?identifier=<hash>&type=hash` | GET | Verify cast exists on network |
+
+### Farcaster Fname Registry (`https://fnames.farcaster.xyz`)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/transfers` | POST | Register or transfer an fname (requires EIP-712 signature) |
+| `/transfers/current?name=<fname>` | GET | Check fname availability (404 = available) |
+
+### x402 Payment
+- **Address:** `0xA6a8736f18f383f1cc2d938576933E5eA7Df01A1`
+- **Cost:** 0.001 USDC per API call (on Base)
+- **Header:** `X-PAYMENT` with base64-encoded EIP-3009 `transferWithAuthorization` signature
+
 ## Common Errors
 
 ### "invalid hash"

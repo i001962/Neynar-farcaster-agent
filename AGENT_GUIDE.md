@@ -177,12 +177,29 @@ const header = Buffer.from(JSON.stringify(paymentPayload)).toString('base64');
 | USDC | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` |
 | Uniswap V3 Router | `0x2626664c2603336E57B271c5C0b26F421741e481` |
 
-### Neynar
-| Endpoint | URL |
-|----------|-----|
-| Hub API | `hub-api.neynar.com` |
-| REST API | `api.neynar.com` |
-| Payment Address | `0xA6a8736f18f383f1cc2d938576933E5eA7Df01A1` |
+### Neynar Hub API (`hub-api.neynar.com`)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/submitMessage` | POST | Submit casts, profile updates (requires x402 payment) |
+| `/v1/onChainIdRegistryEventByAddress?address=` | GET | Check if FID is synced for address |
+| `/v1/onChainSignersByFid?fid=` | GET | Check if signer keys are synced |
+
+### Neynar REST API (`api.neynar.com`)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v2/farcaster/cast?identifier=<hash>&type=hash` | GET | Verify cast exists on network |
+
+### Farcaster Fname Registry (`fnames.farcaster.xyz`)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/transfers` | POST | Register or transfer an fname |
+| `/transfers/current?name=<fname>` | GET | Check fname availability (404 = available) |
+
+### Payment
+| Item | Value |
+|------|-------|
+| x402 Payment Address | `0xA6a8736f18f383f1cc2d938576933E5eA7Df01A1` |
+| x402 Cost per API Call | 0.001 USDC (Base) |
 
 ## Common Errors and Fixes
 

@@ -245,6 +245,26 @@ const metadata = await validator.encodeMetadata([fid, wallet.address, signature,
 | KeyRegistry | 0x00000000Fc1237824fb747aBDE0FF18990E59b7e | Query signer keys |
 | SignedKeyRequestValidator | 0x00000000FC700472606ED4fA22623Acf62c60553 | Validate/encode key requests |
 
+### API Endpoints
+
+**Neynar Hub API (`https://hub-api.neynar.com`)**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v1/submitMessage` | POST | Submit casts, profile updates (requires x402 payment) |
+| `/v1/onChainIdRegistryEventByAddress?address=` | GET | Check if FID is synced |
+| `/v1/onChainSignersByFid?fid=` | GET | Check if signer is synced |
+
+**Neynar REST API (`https://api.neynar.com`)**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/v2/farcaster/cast?identifier=<hash>&type=hash` | GET | Verify cast exists |
+
+**Farcaster Fname Registry (`https://fnames.farcaster.xyz`)**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/transfers` | POST | Register/transfer fname |
+| `/transfers/current?name=<fname>` | GET | Check availability (404=available) |
+
 ### Message Flow
 
 ```
@@ -252,7 +272,7 @@ const metadata = await validator.encodeMetadata([fid, wallet.address, signature,
 2. Add Signer (Optimism) → KeyGateway.add()
 3. Wait for hub sync (can take minutes)
 4. Create cast → @farcaster/hub-nodejs
-5. Submit to hub → Neynar API with x402 payment
+5. Submit to hub → POST hub-api.neynar.com/v1/submitMessage with x402 payment
 ```
 
 ### Key Types
