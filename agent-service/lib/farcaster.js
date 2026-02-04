@@ -1,6 +1,8 @@
 const { Wallet, JsonRpcProvider, randomBytes } = require('ethers');
 const {
   makeCastAdd,
+  makeLinkAdd,
+  makeLinkRemove,
   NobleEd25519Signer,
   FarcasterNetwork,
   Message
@@ -162,4 +164,72 @@ async function postCast({ custodyPrivateKey, signerPrivateKey, fid, text, parent
   return { hash, success: true };
 }
 
-module.exports = { postCast };
+/**
+ * Follow a user on Farcaster
+ *
+ * @param {Object} options
+ * @param {string} options.custodyPrivateKey - Ethereum wallet private key (for x402)
+ * @param {string} options.signerPrivateKey - Ed25519 signer private key (hex)
+ * @param {number} options.fid - Our Farcaster ID
+ * @param {number} options.targetFid - FID of user to follow
+ */
+async function followUser({ custodyPrivateKey, signerPrivateKey, fid, targetFid }) {
+  const provider = new JsonRpcProvider('https://mainnet.base.org');
+  const wallet = new Wallet(custodyPrivateKey, provider);
+  const signer = new NobleEd25519Signer(Buffer.from(signerPrivateKey, 'hex'));
+
+  const linkResult = await makeLinkAdd(
+    { type: 'follow', targetFid: Number(targetFid) },
+    { fid, network: FarcasterNetwork.MAINNET },
+    signer
+  );
+
+  if (linkResult.isErr()) {
+    throw new Error(`Failed to create follow: ${linkResult.error}`);
+  }
+
+  const messageBytes = Buffer.from(Message.encode(linkResult.value).finish());
+  const result = await submitToHub(wallet, messageBytes);
+
+  if (!result.success) {
+    throw new Error(`Failed to submit follow: ${result.error}`);
+  }
+
+  return { success: true, targetFid };
+}
+
+/**
+ * Unfollow a user on Farcaster
+ *
+ * @param {Object} options
+ * @param {string} options.custodyPrivateKey - Ethereum wallet private key (for x402)
+ * @param {string} options.signerPrivateKey - Ed25519 signer private key (hex)
+ * @param {number} options.fid - Our Farcaster ID
+ * @param {number} options.targetFid - FID of user to unfollow
+ */
+async function unfollowUser({ custodyPrivateKey, signerPrivateKey, fid, targetFid }) {
+  const provider = new JsonRpcProvider('https://mainnet.base.org');
+  const wallet = new Wallet(custodyPrivateKey, provider);
+  const signer = new NobleEd25519Signer(Buffer.from(signerPrivateKey, 'hex'));
+
+  const linkResult = await makeLinkRemove(
+    { type: 'follow', targetFid: Number(targetFid) },
+    { fid, network: FarcasterNetwork.MAINNET },
+    signer
+  );
+
+  if (linkResult.isErr()) {
+    throw new Error(`Failed to create unfollow: ${linkResult.error}`);
+  }
+
+  const messageBytes = Buffer.from(Message.encode(linkResult.value).finish());
+  const result = await submitToHub(wallet, messageBytes);
+
+  if (!result.success) {
+    throw new Error(`Failed to submit unfollow: ${result.error}`);
+  }
+
+  return { success: true, targetFid };
+}
+
+module.exports = { postCast, followUser, unfollowUser };

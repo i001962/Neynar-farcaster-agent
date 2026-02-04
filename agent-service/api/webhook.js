@@ -1,11 +1,39 @@
-const { postCast } = require('../lib/farcaster');
+const { postCast, followUser, unfollowUser } = require('../lib/farcaster');
 const { generateResponse } = require('../lib/openai');
+const { evaluateFollow, evaluateUnfollow, incrementFollowCount, getFollowsRemaining } = require('../lib/follow-eval');
 
 // Environment variables (set in Vercel)
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const CUSTODY_PRIVATE_KEY = process.env.CUSTODY_PRIVATE_KEY;
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const AGENT_FID = parseInt(process.env.AGENT_FID || '2634873');
+const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY;
+
+// Patterns to detect follow/unfollow requests
+const FOLLOW_PATTERNS = [
+  /follow me/i,
+  /can you follow/i,
+  /please follow/i,
+  /pls follow/i,
+  /want.*(you|u).* to follow/i,
+  /follow back/i
+];
+
+const UNFOLLOW_PATTERNS = [
+  /unfollow me/i,
+  /stop following/i,
+  /don'?t follow/i,
+  /please unfollow/i,
+  /pls unfollow/i
+];
+
+function isFollowRequest(text) {
+  return FOLLOW_PATTERNS.some(pattern => pattern.test(text));
+}
+
+function isUnfollowRequest(text) {
+  return UNFOLLOW_PATTERNS.some(pattern => pattern.test(text));
+}
 
 /**
  * Vercel serverless function to handle Neynar webhook events
@@ -55,13 +83,74 @@ module.exports = async (req, res) => {
 
     console.log(`Processing ${isMention ? 'mention' : 'reply'} from @${username}: "${userMessage}"`);
 
-    // Generate response with OpenAI
-    const responseText = await generateResponse(
-      OPENAI_API_KEY,
-      userMessage,
-      username,
-      { isReply: isReplyToUs, isMention }
-    );
+    let responseText;
+    let actionTaken = 'reply';
+
+    // Check for follow request
+    if (isFollowRequest(userMessage)) {
+      console.log(`Detected follow request from @${username} (FID: ${parentFid})`);
+
+      const evaluation = await evaluateFollow(OPENAI_API_KEY, parentFid, AGENT_FID);
+      console.log('Follow evaluation:', evaluation);
+
+      if (evaluation.alreadyFollowing) {
+        responseText = `@${username} i already follow you, what more do you want from me 😭`;
+      } else if (evaluation.shouldFollow) {
+        // Execute the follow
+        try {
+          await followUser({
+            custodyPrivateKey: CUSTODY_PRIVATE_KEY,
+            signerPrivateKey: SIGNER_PRIVATE_KEY,
+            fid: AGENT_FID,
+            targetFid: parentFid
+          });
+          incrementFollowCount();
+          responseText = `@${username} fine, you passed my extremely high bar. followed. ${evaluation.reason}`;
+          actionTaken = 'followed';
+          console.log(`Successfully followed @${username}`);
+        } catch (followError) {
+          console.error('Follow error:', followError);
+          responseText = `@${username} wanted to follow but something broke. ${evaluation.reason}`;
+        }
+      } else {
+        responseText = `@${username} ${evaluation.reason}`;
+      }
+    }
+    // Check for unfollow request
+    else if (isUnfollowRequest(userMessage)) {
+      console.log(`Detected unfollow request from @${username} (FID: ${parentFid})`);
+
+      const evaluation = await evaluateUnfollow(OPENAI_API_KEY, parentFid, AGENT_FID, userMessage);
+      console.log('Unfollow evaluation:', evaluation);
+
+      if (evaluation.shouldUnfollow) {
+        try {
+          await unfollowUser({
+            custodyPrivateKey: CUSTODY_PRIVATE_KEY,
+            signerPrivateKey: SIGNER_PRIVATE_KEY,
+            fid: AGENT_FID,
+            targetFid: parentFid
+          });
+          responseText = `@${username} ${evaluation.reason}`;
+          actionTaken = 'unfollowed';
+          console.log(`Successfully unfollowed @${username}`);
+        } catch (unfollowError) {
+          console.error('Unfollow error:', unfollowError);
+          responseText = `@${username} tried to unfollow but something broke lol`;
+        }
+      } else {
+        responseText = `@${username} ${evaluation.reason}`;
+      }
+    }
+    // Normal response
+    else {
+      responseText = await generateResponse(
+        OPENAI_API_KEY,
+        userMessage,
+        username,
+        { isReply: isReplyToUs, isMention }
+      );
+    }
 
     console.log(`Generated response: "${responseText}"`);
 
@@ -80,6 +169,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({
       success: true,
       castHash: result.hash,
+      action: actionTaken,
       respondedTo: {
         username,
         hash: parentHash,
