@@ -292,6 +292,65 @@ await setupFullProfile({
 console.log('Profile: https://farcaster.xyz/myagent');
 ```
 
+## Making Your Agent Autonomous
+
+The core skill above gives you the primitives to create accounts and post casts. To make your agent truly autonomous (responding to mentions, interacting with users), you'll need a few more things:
+
+### 1. Define Your Agent's Personality
+
+Create a **system prompt** that defines how your agent behaves. This is crucial for giving your agent a unique voice and personality. Store it securely (e.g., as an environment variable, not in code).
+
+Example considerations:
+- What's your agent's persona/character?
+- How should it respond to different types of messages?
+- What topics should it engage with or avoid?
+- What's the tone? (formal, casual, funny, etc.)
+
+### 2. Choose a Deployment Strategy
+
+There are several ways to make your agent respond automatically:
+
+| Strategy | Pros | Cons |
+|----------|------|------|
+| **Webhook** (recommended) | Real-time responses, serverless, cost-efficient | Requires hosted endpoint |
+| **Polling** | Simple, no external dependencies | Slower, more API calls |
+| **Local daemon** | Full control, no hosting costs | Requires always-on machine |
+
+### 3. Reference Implementation
+
+See the `agent-service/` directory in this repo for a complete **Vercel webhook implementation**:
+
+```
+agent-service/
+├── api/webhook.js      # Main webhook handler
+├── lib/farcaster.js    # Posting & follow/unfollow via x402
+├── lib/neynar.js       # Profile & cast lookups
+├── lib/follow-eval.js  # Follow decision logic
+├── lib/openai.js       # LLM response generation
+└── vercel.json         # Deployment config
+```
+
+**Webhook setup:**
+1. Deploy to Vercel (or similar)
+2. Set environment variables (API keys, signer keys, system prompt)
+3. Create a Neynar webhook pointing to your endpoint
+4. Filter for `cast.created` events with `mentioned_fids` or `parent_author_fids` matching your FID
+
+### 4. Advanced: Follow/Unfollow Capabilities (Optional)
+
+The reference implementation includes the ability to follow/unfollow users:
+
+- Detects "follow me" requests
+- Evaluates user profiles using an LLM
+- Decides whether to follow based on content quality, follower count, vibes
+- Rate limited (default: 20 follows/day)
+- Can also handle unfollow requests
+
+This requires:
+- Neynar API key for profile lookups
+- Additional LLM calls for evaluation
+- `makeLinkAdd`/`makeLinkRemove` from `@farcaster/hub-nodejs`
+
 ## Source Code
 
 The complete implementation is at: https://github.com/rishavmukherji/farcaster-agent
