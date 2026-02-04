@@ -154,6 +154,21 @@ module.exports = async (req, res) => {
 
     console.log(`Generated response: "${responseText}"`);
 
+    // Check if GPT decided no reply is needed
+    if (responseText.includes('[NO_REPLY]')) {
+      console.log('GPT decided no reply needed, skipping');
+      return res.status(200).json({
+        success: true,
+        action: 'skipped',
+        reason: 'no reply needed',
+        respondedTo: {
+          username,
+          hash: parentHash,
+          type: isMention ? 'mention' : 'reply'
+        }
+      });
+    }
+
     // Post the reply
     const result = await postCast({
       custodyPrivateKey: CUSTODY_PRIVATE_KEY,
