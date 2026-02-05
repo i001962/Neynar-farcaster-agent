@@ -323,11 +323,12 @@ See the `agent-service/` directory in this repo for a complete **Vercel webhook 
 ```
 agent-service/
 ├── api/webhook.js      # Main webhook handler
-├── lib/farcaster.js    # Posting & follow/unfollow via x402
+├── api/cron.js         # Autonomous posting cron job
+├── lib/farcaster.js    # Posting & follow/unfollow via x402 (with mention parsing)
 ├── lib/neynar.js       # Profile & cast lookups
 ├── lib/follow-eval.js  # Follow decision logic
-├── lib/openai.js       # LLM response generation
-└── vercel.json         # Deployment config
+├── lib/openai.js       # LLM response generation (multimodal support)
+└── vercel.json         # Deployment config + cron schedule
 ```
 
 **Webhook setup:**
@@ -336,7 +337,30 @@ agent-service/
 3. Create a Neynar webhook pointing to your endpoint
 4. Filter for `cast.created` events with `mentioned_fids` or `parent_author_fids` matching your FID
 
-### 4. Advanced: Follow/Unfollow Capabilities (Optional)
+### 4. Proper @Mentions
+
+The `postCast` function automatically handles @mentions:
+- Parses `@username` patterns from your cast text
+- Looks up FIDs via Neynar API
+- Encodes them as proper Farcaster mentions (users get notified)
+- If a username lookup fails, it stays as plain text
+
+### 5. Multimodal Support (Images)
+
+The reference implementation can see and respond to images in casts:
+- Extracts image URLs from cast embeds
+- Passes them to the LLM as multimodal content
+- Agent can describe, comment on, or react to images
+
+### 6. Autonomous Posting (Cron)
+
+The `api/cron.js` endpoint enables scheduled autonomous posting:
+- Fetches recent casts to avoid repetition
+- Generates new content based on agent personality
+- Runs on Vercel cron (daily on Hobby plan, more frequent on Pro)
+- Prompt stored in `AUTONOMOUS_CAST_PROMPT` env var
+
+### 7. Advanced: Follow/Unfollow Capabilities (Optional)
 
 The reference implementation includes the ability to follow/unfollow users:
 
