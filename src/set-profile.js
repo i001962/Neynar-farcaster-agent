@@ -103,6 +103,7 @@ async function setProfileData({ privateKey, signerPrivateKey, fid, displayName, 
   const signer = new NobleEd25519Signer(Buffer.from(signerPrivateKey, 'hex'));
 
   const results = {};
+  const credentialUpdates = {};
 
   const updates = [
     { type: UserDataType.DISPLAY, value: displayName, name: 'displayName' },
@@ -132,9 +133,22 @@ async function setProfileData({ privateKey, signerPrivateKey, fid, displayName, 
     if (result.success) {
       console.log(`  Success!`);
       results[update.name] = { success: true };
+      if (update.name === 'displayName') {
+        credentialUpdates.displayName = update.value;
+        credentialUpdates.display_name = update.value;
+      }
     } else {
       console.log(`  Failed: ${result.error}`);
       results[update.name] = { success: false, error: result.error };
+    }
+  }
+
+  if (Object.keys(credentialUpdates).length > 0) {
+    try {
+      updateCredentials(fid, credentialUpdates);
+      console.log('Credentials updated with profile data.');
+    } catch (e) {
+      // Credentials file may not exist if not using auto-setup
     }
   }
 
@@ -267,9 +281,9 @@ async function registerFname({ privateKey, signerPrivateKey, fid, fname }) {
 
   console.log('\nSUCCESS! Username @' + fname + ' is now active.');
 
-  // Update stored credentials with fname
+  // Update stored credentials with fname/username
   try {
-    updateCredentials(fid, { fname });
+    updateCredentials(fid, { fname, username: fname });
     console.log('Credentials updated with fname.');
   } catch (e) {
     // Credentials file may not exist if not using auto-setup

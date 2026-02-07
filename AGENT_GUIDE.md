@@ -357,7 +357,8 @@ The stored credentials include:
 - **FID:** The Farcaster ID number
 - **Custody Address & Private Key:** Ethereum wallet (controls the FID)
 - **Signer Public & Private Key:** Ed25519 key for signing casts
-- **Fname:** Username (if registered)
+- **Fname / Username:** Username (if registered)
+- **Display Name:** Profile display name (if set)
 
 ### Managing Credentials
 

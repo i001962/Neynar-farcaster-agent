@@ -29,6 +29,9 @@ function getCredentialsPath() {
  * @param {string} credentials.signerPublicKey - Ed25519 signer public key (hex)
  * @param {string} credentials.signerPrivateKey - Ed25519 signer private key (hex)
  * @param {string} [credentials.fname] - Username if registered
+ * @param {string} [credentials.username] - Username (alias for fname)
+ * @param {string} [credentials.displayName] - Display name
+ * @param {string} [credentials.display_name] - Display name (snake_case)
  * @param {Object} [options]
  * @param {string} [options.path] - Custom path to save credentials
  */
@@ -60,6 +63,9 @@ function saveCredentials(credentials, options = {}) {
     signerPublicKey: credentials.signerPublicKey,
     signerPrivateKey: credentials.signerPrivateKey,
     fname: credentials.fname || null,
+    username: credentials.username || credentials.fname || null,
+    displayName: credentials.displayName || null,
+    display_name: credentials.display_name || credentials.displayName || null,
     createdAt: credentials.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
